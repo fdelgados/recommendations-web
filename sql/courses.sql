@@ -3,32 +3,17 @@ SELECT
     c.title,
     c.description,
     c.syllabus,
-    m.description AS methodology,
-    cat.description AS category,
-    fam.description AS family,
-    c.type AS course_type,
-    prange.description AS price_range,
-    dur.description AS duration,
-    langs.description AS `language`,
+    c.course_type_id AS course_type,
+    c.category_id AS category,
+    c.methodology_id AS methodology,
+    c.price_range_id AS price_range,
+    c.duration_id AS duration,
+    c.is_flexible AS flexible,
+    langs.code AS `language`,
+    c.location_id AS `location`,
     c.updated_on
 FROM
 	EM_CURSOS COURSES
-LEFT JOIN
-    methodologies m
-ON
-	m.id = c.methodology_id
-LEFT JOIN
-	categories cat
-ON
-	cat.id = c.id_categ
-LEFT JOIN
-	categories fam
-ON
-	fam.id = c.id_categ_lev1
-LEFT JOIN
-	price_ranges prange
-ON
-	c.price_range = prange.id_price_range
 LEFT JOIN
 	languages langs
 ON
