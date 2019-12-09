@@ -1,5 +1,6 @@
 *.csv
+.vscode
 .ipynb_checkpoints
 __pycache__
-sql/extract.sql
+sql
 notebooks/Data\ preparation.ipynb
