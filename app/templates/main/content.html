@@ -1,0 +1,63 @@
+<div class="col-md-3">
+    <div class="card">
+        <div class="card-header">
+            Filter and sort
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Sort by</h5>
+            <a href="/?sort_by=leads" class="btn btn-block btn-sm {{ 'btn-dark disabled' if response.sort_by == 'leads' else 'btn-outline-dark' }}">Number of leads</a>
+            <a href="/?sort_by=rating" class="btn btn-block btn-sm {{ 'btn-dark disabled' if response.sort_by == 'rating' else 'btn-outline-dark' }}">Rating</a>
+            <hr>
+            <h5 class="card-title">Categories</h5>
+            <select class="custom-select" size="25">
+                <option{% if response.category_id %} selected{% endif %}>All</option>
+                {% for category in response.categories %}
+                <option value="{{category.id}}"{% if response.category_id == category.id %} selected{% endif %}>{{category.name}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+<div class="col-md-9">
+    <h2 class="heading">
+        {% if response.category_name %}
+            {{response.category_name}}
+        {% else %}
+            All categories
+        {% endif %}
+    </h2>
+    {% for course in response.courses %}
+    <div class="col-xs-12 clearfix course-list-item border rounded">
+        <h3><a href="/course/{{ course.id }}">{{ course.title }}</a></h3>
+        <h4><span class="badge badge-secondary">{{ course.category }}</span></h4>
+        <p class="course-meta">
+            {% if course.avg_rating %}
+            <h6><span class="badge badge-info">{{'%0.1f' % course.avg_rating|float}}</span> Based on {{ course.number_of_reviews }} reviews</h6>
+            {% endif %}
+            {% if course.number_of_leads %}
+            <h6><span class="badge badge-info">{{ course.number_of_leads }} requests</span></h6>
+            {% endif %}
+        </p>
+        <p class="course-description">
+            {% if course.description %}
+            {{ course.description|truncate(250) }}
+            {% endif %}
+        </p>
+        <p><button type="button" class="btn btn-primary float-right">Request information</button></p>
+    </div>
+    {% endfor %}
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            <li class="page-item{{ '' if response.prev_page else ' disabled' }}">
+                <a class="page-link" href="/?sort_by{{response.sort_by}}&page={{response.prev_page}}" tabindex="-1">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">{{response.current_page}} of {{response.total_pages}} pages</a>
+            </li>
+            <li class="page-item{{ '' if response.next_page else ' disabled' }}">
+                <a class="page-link" href="/?sort_by={{response.sort_by}}&page={{response.next_page}}">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
