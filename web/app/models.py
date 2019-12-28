@@ -1,6 +1,7 @@
 from . import db
 import math
 from typing import List
+from sqlalchemy.sql import text
 
 
 class Paginator:
@@ -114,6 +115,31 @@ class CourseRepository(Repository):
             query = '{} limit {}, {}'.format(query, self.paginator.offset, self.paginator.items_per_page)
 
         return db.engine.execute(query)
+
+    def find(self, course_id):
+        query = 'SELECT c.id, title, description, center, category_id, c.center, ' \
+                'cat.name AS category_name, count(DISTINCT l.user_id) AS number_of_leads,' \
+                'cr.weighted_rating_average, cr.num_reviews ' \
+                'FROM courses c JOIN categories cat ON c.category_id = cat.id ' \
+                'LEFT JOIN clean_leads l ON l.course_id = c.id ' \
+                'LEFT JOIN clean_reviews cr ON c.id = cr.course_id ' \
+                'WHERE c.id = :course_id ' \
+                'GROUP BY c.id'
+
+        result = db.engine.execute(text(query), course_id=course_id)
+        course_data = result.fetchone()
+
+        course = Course(course_data['id'],
+                        course_data['title'],
+                        course_data['category_name'],
+                        course_data['center'])
+
+        course.set_description(course_data['description'])
+        course.set_number_of_leads(course_data['number_of_leads'])
+        course.set_number_of_reviews(course_data['num_reviews'])
+        course.set_avg_rating(course_data['weighted_rating_average'])
+
+        return course
 
 
 class Category:

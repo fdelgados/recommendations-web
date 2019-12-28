@@ -52,3 +52,18 @@ class RetrieveSortedCourses:
                 'next_page': next_page,
                 'prev_page': prev_page,
                 'sort_by': sort_by}
+
+
+class RetrieveCourseDataCommand:
+    def __init__(self, course_id: int):
+        self.course_id = course_id
+
+
+class RetrieveCourseData:
+    @staticmethod
+    def execute(command: RetrieveCourseDataCommand):
+        course_repository = CourseRepository()
+
+        course = course_repository.find(command.course_id)
+
+        return course
