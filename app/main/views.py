@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import render_template, request, session, redirect, url_for
 from . import main
 from . use_cases import RetrieveSortedCourses, RetrieveSortedCoursesCommand
+from . use_cases import RetrieveCourseData, RetrieveCourseDataCommand
 
 
 @main.route('/', methods=['GET'])
@@ -13,7 +14,13 @@ def index():
 
     response = RetrieveSortedCourses.execute(command)
 
-    return render_template(
-        'home.html',
-        response=response
-    )
+    return render_template('home.html', response=response)
+
+
+@main.route('/course/<int:course_id>', methods=['GET'])
+def course(course_id):
+    command = RetrieveCourseDataCommand(course_id)
+
+    course = RetrieveCourseData.execute(command)
+
+    return render_template('course.html', course=course)
