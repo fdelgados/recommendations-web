@@ -1,17 +1,12 @@
 import os
+from pathlib import Path
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-
-    @staticmethod
-    def init_app(app):
-        pass
-
-
-class DevelopmentConfig(Config):
-    DEBUG = True
+    DEBUG = False
+    TESTING = False
     DB_USER = 'bc0e0e4f733dda'
     DB_PASSWORD = '00f61efe'
     DB_NAME = 'heroku_8149febc614deb5'
@@ -20,6 +15,12 @@ class DevelopmentConfig(Config):
                                                            DB_PASSWORD,
                                                            DB_HOST,
                                                            DB_NAME)
+    DATA_DIR = os.path.join(Path(basedir).parent, 'data')
+    APPLICATION_ROOT = basedir
+
+
+class DevelopmentConfig(Config):
+    DEBUG = True
 
 
 class TestingConfig(Config):
@@ -35,11 +36,3 @@ class ProductionConfig(Config):
                                                            DB_PASSWORD,
                                                            DB_HOST,
                                                            DB_NAME)
-
-
-config = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}

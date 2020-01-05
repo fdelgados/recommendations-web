@@ -1,11 +1,10 @@
 import os
-from app import create_app, db
-from config import config
+from app import create_app
 
-env = os.environ.get('ENV', 'default')
+environment = os.environ.get('FLASK_ENV', 'development')
+port = os.environ.get('FLASK_PORT', '5000')
 
-application = create_app(config[env])
-
+application = create_app('config.{}Config'.format(environment.capitalize()))
 
 if __name__ == '__main__':
-    application.run()
+    application.run(port=port)
