@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{title}}{% endblock %}
+{% block head %}
+{% include 'head-small.html' %}
+{% endblock %}
+{% block content %}
+<div class="col-md-12">
+    <h1>Categories</h1>
+    <div class="row mt-3">
+        {% for category_id, category in response.categories.items() %}
+        <div class="col-md-3">
+            <a href="{{ url_for('main.catalog', category=category_id )}}">{{ category.name }}</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

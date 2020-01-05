@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 {% block title %}{{course.title}}{% endblock %}
-{% block head %}
-{% include 'head-small.html' %}
-{% endblock %}
 {% block content %}
-<div class="col-md-9">
+<div class="col-md-12">
     <h1>{{course.title}}</h1>
     <hr>
-    <h4><span class="badge badge-secondary">{{ course.category }}</span></h4>
-    <p class="course-meta">
-        {% if course.avg_rating %}
-        <span class="badge badge-info">{{'%0.1f' % course.avg_rating|float}}</span> <span>Based on {{ course.number_of_reviews }} reviews</span>
-        {% endif %}
-        {% if course.number_of_leads %}
-            <span class="badge badge-info">{{ course.number_of_leads }} requests</span>
-        {% endif %}
-    </p>
-    <h5 class="card-title">{{course.center}}</h5>
-    <p class="course-description">
-        {% if course.description %}
-        {{course.description}}
-        {% else %}
-            <div class="alert alert-warning" role="alert">
-                This course has no description
-            </div>
-        {% endif %}
-    </p>
+    {% include 'main/course-meta.html' %}
+    <div class="row">
+        <div class="col-md-10 border-right">
+            <p>
+                {% if course.description %}
+                {{course.description}}
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        This course has no description
+                    </div>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-2 pt-1">
+            <p><button type="button" class="btn btn-primary request-info-btn" data-course-id="{{course.id}}" data-toggle="modal" data-target="#requestInfoModal">Request information</button></p>
+        </div>
+    </div>
 </div>
-<div class="col-md-3">
-    <p class="text-center"><button type="button" class="btn btn-primary">Request information</button></p>
-</div>
+
+{% include 'main/recommendations.html' %}
+
 {% endblock %}
+{% block script %}
+<script src="{{ url_for('static', filename='js/request-info.js') }}"></script>
+{% endblock %}
+
+{% include 'main/request-form.html' %}

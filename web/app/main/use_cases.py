@@ -1,17 +1,19 @@
 from ..models import CourseRepository, CategoryRepository, Paginator
+from ..models import Lead, LeadRepository, Recommendations
 from typing import Dict
+import hashlib
 
 
-class RetrieveSortedCoursesCommand:
+class RetrieveCourseCatalogCommand:
     def __init__(self, page: int, sort_by: str, category: int):
         self.page = int(page)
         self.sort_by = sort_by
         self.category = category
 
 
-class RetrieveSortedCourses:
+class RetrieveCourseCatalog:
     @staticmethod
-    def execute(command: RetrieveSortedCoursesCommand) -> Dict:
+    def execute(command: RetrieveCourseCatalogCommand) -> Dict:
         courses = []
         page = command.page
         sort_by = command.sort_by
@@ -34,11 +36,11 @@ class RetrieveSortedCourses:
 
         category_repository = CategoryRepository()
 
-        categories = category_repository.find_all()
+        categories = category_repository.find_all(10)
 
         category_name = None
         if category_id is not None:
-            for category in categories:
+            for _, category in categories.items():
                 if category.id == category_id:
                     category_name = category.name
                     break
@@ -65,5 +67,65 @@ class RetrieveCourseData:
         course_repository = CourseRepository()
 
         course = course_repository.find(command.course_id)
+        recommendations = Recommendations()
+        recommendations.make_recommendations_by_course(course.id).make_rank_recommendations(course.category_id,
+                                                                                            course.id)
 
-        return course
+        return {'course': course,
+                'recommendations': recommendations}
+
+
+class PlaceAnInfoRequestCommand:
+    def __init__(self, course_id: str, email: str):
+        self.course_id = course_id
+        self.email = email
+
+
+class PlaceAnInfoRequest:
+    @staticmethod
+    def execute(command: PlaceAnInfoRequestCommand):
+        course_repository = CourseRepository()
+        lead_repository = LeadRepository()
+
+        course = course_repository.find(command.course_id)
+        # Hashing the user email
+        user_id = hashlib.md5(command.email.encode()).hexdigest()
+        lead = Lead(user_id, course)
+
+        success = True
+        recommendations = Recommendations()
+        try:
+            lead_repository.save(lead)
+            recommendations.make_recommendations_by_course(course.id)
+        except Exception:
+            success = False
+
+        return {
+            'success': success,
+            'user_id': user_id,
+            'course_id': course.id,
+            'course_title': course.title,
+            'recommendations': recommendations
+        }
+
+
+class RetrieveHomeRecommendationsCommand:
+    def __init__(self, user_id: str = None):
+        self.user_id = user_id
+
+
+class RetrieveHomeRecommendations:
+    @staticmethod
+    def execute(command: RetrieveHomeRecommendationsCommand) -> Dict:
+        recommendations = Recommendations()
+        recommendations.make_rank_recommendations().make_recommendations_by_user(command.user_id)
+
+        return {'recommendations': recommendations}
+
+
+class RetrieveCategories:
+    @staticmethod
+    def execute() -> Dict:
+        category_repository = CategoryRepository()
+
+        return {'categories': category_repository.find_all()}

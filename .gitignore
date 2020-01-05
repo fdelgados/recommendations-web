@@ -1,6 +1,6 @@
-*.csv
+data
 .vscode
 .ipynb_checkpoints
 __pycache__
 sql
-notebooks/Data\ preparation.ipynb
+out
