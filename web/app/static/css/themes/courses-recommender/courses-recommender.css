@@ -28,7 +28,7 @@ body {
 
 .course-meta {
     margin-bottom: 1.25em;
-    color: #999;
+    color: #495057;
 }
 .request-info-mini {
     cursor: pointer;
@@ -48,6 +48,19 @@ body {
 }
 .container-error {
     padding-top: 50px;
+}
+
+.left-sidebar .categories-menu a.active span.rating {
+    color: #ffffff;
+}
+
+.popular-categories a:hover {
+    text-decoration: none;
+    background-color: #f8f9fa;
+}
+
+.popular-categories a span.rating {
+    color: #495057;
 }
 
 /* Sticky footer styles

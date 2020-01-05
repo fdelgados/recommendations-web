@@ -4,20 +4,17 @@
 {% set cat_qstring = '' %}
 {% endif %}
 
+{% if response.category_name %}
+{% set selected_category = response.category_name %}
+{% else %}
+{% set selected_category = 'All categories' %}
+{% endif %}
+
 {% extends "base.html" %}
-{% block title %}{{title}}{% endblock %}
-{% block head %}
-{% include 'head-small.html' %}
-{% endblock %}
+{% block title %}Catalog | {{ selected_category }}{% endblock %}
 {% block content %}
 <div class="col-md-12">
-    <h1>
-        {% if response.category_name %}
-            {{response.category_name}}
-        {% else %}
-            All categories
-        {% endif %}
-    </h1>
+    <h1>{{ selected_category }}</h1>
 </div>
 <div class="col-md-3 left-sidebar">
     <div class="card">
@@ -28,12 +25,12 @@
                 <a href="{{ url_for('main.catalog', sort_by='rating')}}{{cat_qstring}}" class="btn btn-block btn-sm {{ 'btn-dark disabled' if response.sort_by == 'rating' else 'btn-outline-dark' }}">Rating</a>
             </div>
             <h5 class="card-title p-2">Categories</h5>
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush categories-menu">
                 <a href="{{ url_for('main.catalog', sort_by=response.sort_by)}}" class="list-group-item list-group-item-action{{ '' if response.category_id else ' active' }}">All categories</a>
                 {% for category_id, category in response.categories.items() %}
-                    <a href="{{ url_for('main.catalog', sort_by=response.sort_by, category=category_id)}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center{{ ' active' if category_id ==  response.category_id else '' }}">
+                    <a href="{{ url_for('main.catalog', sort_by=response.sort_by, category=category_id)}}" class="list-group-item list-group-item-action{{ ' active' if category_id ==  response.category_id else '' }}">
                         {{category.name}}
-                        <span class="badge badge-primary badge-pill">{{category.num_courses}}</span>
+                        {% include 'main/category-meta.html' %}
                     </a>
                 {% endfor %}
                 <a href="{{ url_for('main.categories')}}" class="list-group-item list-group-item-action text-center">
@@ -57,7 +54,7 @@
     </div>
     {% endfor %}
 
-    <nav aria-label="Page navigation example">
+    <nav aria-label="paginator">
         <ul class="pagination justify-content-center">
             <li class="page-item{{ '' if response.prev_page else ' disabled' }}">
                 <a class="page-link" href="{{ url_for('main.catalog', sort_by=response.sort_by, page=response.prev_page) }}{{cat_qstring}}" tabindex="-1">Previous</a>

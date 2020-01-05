@@ -14,7 +14,9 @@ def home():
     command = RetrieveHomeRecommendationsCommand(user_id=user_id)
     response = RetrieveHomeRecommendations.execute(command)
 
-    return render_template('home.html', recommendations=response['recommendations'])
+    return render_template('home.html',
+                           recommendations=response['recommendations'],
+                           categories=response['categories'])
 
 
 @main.route('/categories', methods=['GET'])
@@ -23,9 +25,9 @@ def categories():
 
     return render_template('categories.html', response=response)
 
+
 @main.route('/catalog', methods=['GET'])
 def catalog():
-
     command = RetrieveCourseCatalogCommand(page=request.args.get('page', default=1),
                                            sort_by=request.args.get('sort_by', default='leads'),
                                            category=request.args.get('category'))
