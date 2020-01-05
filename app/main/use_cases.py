@@ -36,14 +36,12 @@ class RetrieveCourseCatalog:
 
         category_repository = CategoryRepository()
 
-        categories = category_repository.find_all(10)
+        categories = category_repository.find_popular(max_rows=10)
 
         category_name = None
         if category_id is not None:
-            for _, category in categories.items():
-                if category.id == category_id:
-                    category_name = category.name
-                    break
+            selected_category = category_repository.find(category_id)
+            category_name = selected_category.name
 
         return {'courses': courses,
                 'categories': categories,
@@ -120,7 +118,11 @@ class RetrieveHomeRecommendations:
         recommendations = Recommendations()
         recommendations.make_rank_recommendations().make_recommendations_by_user(command.user_id)
 
-        return {'recommendations': recommendations}
+        category_repository = CategoryRepository()
+
+        categories = category_repository.find_popular(max_rows=10)
+
+        return {'recommendations': recommendations, 'categories': categories}
 
 
 class RetrieveCategories:
@@ -128,4 +130,4 @@ class RetrieveCategories:
     def execute() -> Dict:
         category_repository = CategoryRepository()
 
-        return {'categories': category_repository.find_all()}
+        return {'categories': category_repository.find_popular(min_weighted_rating=0.0)}

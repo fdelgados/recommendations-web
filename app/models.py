@@ -2,7 +2,7 @@ from . import db
 import numpy as np
 import math
 import datetime
-from typing import List, Dict
+from typing import Dict, Any
 from sqlalchemy.sql import text
 
 
@@ -51,15 +51,22 @@ class Repository:
 
         return db.engine.execute(text(query), **kwargs)
 
+    def populate(self, row: Dict) -> Any:
+        pass
+
 
 class Category:
-    def __init__(self, id: int, name: str, num_courses: int = None):
+    def __init__(self, id: int, name: str):
         self.id = id
         self.name = name
-        self.num_courses = num_courses
+        self.number_of_leads = 0
+        self.weighted_rating = 0.0
 
-    def set_num_courses(self, num_courses: int):
-        self.num_courses = num_courses
+    def set_number_of_leads(self, number_of_leads: int):
+        self.number_of_leads = number_of_leads
+
+    def set_weighted_rating(self, total_weighted_rating: float):
+        self.weighted_rating = total_weighted_rating
 
 
 class CategoryRepository(Repository):
@@ -79,21 +86,44 @@ class CategoryRepository(Repository):
 
         return categories
 
-    def find_popular(self, max_rows: int = None) -> Dict[int, Category]:
+    def find_popular(self, max_rows: int = None, min_weighted_rating: float = 7.0) -> Dict[int, Category]:
         categories = {}
 
-        query = '''SELECT cat.id, cat.name, SUM(c.number_of_leads) AS number_of_leads
+        query = '''SELECT cat.id, cat.name, SUM(c.number_of_leads) AS cat_number_of_leads,
+                    AVG(c.weighted_rating) AS cat_weighted_rating
                      FROM categories cat
                      JOIN courses c ON cat.id = c.category_id
+                     WHERE c.number_of_leads >= 1
                      GROUP BY cat.id, cat.name
-                     ORDER BY number_of_leads DESC'''
+                     HAVING cat_weighted_rating >= :min_weighted_rating
+                     ORDER BY cat_number_of_leads DESC, cat_weighted_rating DESC'''
 
-        result = self.execute_query(query, limit=max_rows)
+        result = self.execute_query(query, limit=max_rows, min_weighted_rating=min_weighted_rating)
 
         for row in result:
-            categories[row['id']] = Category(row['id'], row['name'])
+            categories[row['id']] = self.populate(row)
 
         return categories
+
+    def find(self, category_id: int) -> Category:
+        query = '''SELECT cat.id, cat.name, SUM(c.number_of_leads) AS cat_number_of_leads,
+                    AVG(c.weighted_rating) AS cat_weighted_rating
+                     FROM categories cat
+                     JOIN courses c ON cat.id = c.category_id
+                     WHERE cat.id = :category_id
+                     GROUP BY cat.id, cat.name'''
+
+        result = self.execute_query(query, category_id=category_id)
+
+        return self.populate(result.fetchone())
+
+    def populate(self, row: Dict) -> Category:
+        category = Category(row['id'], row['name'])
+
+        category.set_number_of_leads(row['cat_number_of_leads'])
+        category.set_weighted_rating(row['cat_weighted_rating'])
+
+        return category
 
 
 class Course:
