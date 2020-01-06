@@ -1,9 +1,9 @@
 from flask import render_template, request, abort, session, redirect, url_for
 from . import main
-from . use_cases import RetrieveCourseCatalog, RetrieveCourseCatalogCommand
-from . use_cases import RetrieveCourseData, RetrieveCourseDataCommand
-from . use_cases import PlaceAnInfoRequest, PlaceAnInfoRequestCommand
-from . use_cases import RetrieveHomeRecommendations, RetrieveHomeRecommendationsCommand
+from .use_cases import RetrieveCourseCatalog, RetrieveCourseCatalogCommand
+from .use_cases import RetrieveCourseData, RetrieveCourseDataCommand
+from .use_cases import PlaceAnInfoRequest, PlaceAnInfoRequestCommand
+from .use_cases import RetrieveHomeRecommendations, RetrieveHomeRecommendationsCommand
 from .use_cases import RetrieveCategories
 
 user_id = '001d7fed950bc1f5834b2d4af75b1879'
