@@ -1,8 +1,9 @@
-from . import db
 import math
 import datetime
+from abc import ABC, abstractmethod
 from typing import Dict, Any, Union, List
 from sqlalchemy.sql import text
+from . import db
 
 
 class Paginator:
@@ -32,7 +33,7 @@ class Paginator:
         self.page_count = int(math.ceil(self.row_count / self.items_per_page))
 
 
-class Repository:
+class Repository(ABC):
     """Repository base class. Performs queries to database and builds the response"""
 
     def __init__(self, paginator: Paginator = None):
@@ -69,6 +70,7 @@ class Repository:
 
         return db.engine.execute(text(query), **kwargs)
 
+    @abstractmethod
     def build_response(self, query: str, **kwargs) -> Any:
         """Creates a collection of entities from a query
 
@@ -451,7 +453,7 @@ class Lead:
         return self.course.id
 
 
-class LeadRepository(Repository):
+class LeadRepository(Repository, ABC):
     """Lead repository. Manages the queries that concern the leads"""
 
     def save(self, lead: Lead):
