@@ -1,19 +1,42 @@
 from ..models import CourseRepository, CategoryRepository, Paginator
-from ..models import Lead, LeadRepository, Recommendations
+from ..models import Lead, LeadRepository
+from ..recommender import Recommender
 from typing import Dict
 import hashlib
 
 
 class RetrieveCourseCatalogCommand:
+    """Request command containing query parameters"""
+
+    SORT_LEADS = 'leads'
+    SORT_RATING = 'rating'
+
     def __init__(self, page: int, sort_by: str, category: int):
+        """Initializes the command
+        :param page: Page number
+        :param sort_by: rating|leads
+        :param category: Category identifier
+        """
+
+        if sort_by != self.SORT_LEADS and sort_by != self.SORT_RATING:
+            raise ValueError('sort_by must be {} or {}.'.format(self.SORT_LEADS, self.SORT_RATING))
+
         self.page = int(page)
         self.sort_by = sort_by
         self.category = category
 
 
 class RetrieveCourseCatalog:
+    """Use case class to retrieve the course catalog"""
+
     @staticmethod
     def execute(command: RetrieveCourseCatalogCommand) -> Dict:
+        """ Retrieve the course catalog, a list of categories, the current category from database.
+            It also returns information to create the paginator
+
+        :param command: The use case request command containing query parameters
+        :return: A dictionary with data to be passed to view
+        """
         courses = []
         page = command.page
         sort_by = command.sort_by
@@ -26,9 +49,9 @@ class RetrieveCourseCatalog:
         paginator = Paginator(page, items_per_page=courses_per_page)
         course_repository = CourseRepository(paginator)
 
-        if sort_by == 'leads':
+        if sort_by == RetrieveCourseCatalogCommand.SORT_LEADS:
             courses = course_repository.find_sorted_by_leads(category_id)
-        if sort_by == 'rating':
+        if sort_by == RetrieveCourseCatalogCommand.SORT_RATING:
             courses = course_repository.find_sorted_by_rating(category_id)
 
         prev_page = page - 1 if page >= 1 else None
@@ -55,33 +78,60 @@ class RetrieveCourseCatalog:
 
 
 class RetrieveCourseDataCommand:
+    """Request command containing the course identifier"""
+
     def __init__(self, course_id: int):
+        """Initializes the command
+
+        :param course_id: Course identifier
+        """
         self.course_id = course_id
 
 
 class RetrieveCourseData:
+    """Use case class to retrieve data from a course"""
+
     @staticmethod
     def execute(command: RetrieveCourseDataCommand):
+        """Retrieves data from a course, recommendations based on it and rank based recommendations
+
+        :param command: The use case request command containing the course identifier
+        :return: A dictionary with the course and recommendations
+        """
         course_repository = CourseRepository()
 
-        course = course_repository.find(command.course_id)
-        recommendations = Recommendations()
-        recommendations.make_recommendations_by_course(course.id).make_rank_recommendations(course.category_id,
-                                                                                            course.id)
+        course = course_repository.find(str(command.course_id))
+        recommender = Recommender()
+        recommender.make_recommendations_by_course(course.id).make_rank_recommendations(course.category_id,
+                                                                                        str(course.id))
 
         return {'course': course,
-                'recommendations': recommendations}
+                'recommendations': recommender}
 
 
 class PlaceAnInfoRequestCommand:
+    """Request command containing the user email and the course identifier"""
+
     def __init__(self, course_id: str, email: str):
+        """Initializes the command
+
+        :param course_id: Course identifier
+        :param email: User email
+        """
         self.course_id = course_id
         self.email = email
 
 
 class PlaceAnInfoRequest:
+    """Use case class to place an information request"""
+
     @staticmethod
-    def execute(command: PlaceAnInfoRequestCommand):
+    def execute(command: PlaceAnInfoRequestCommand) -> Dict:
+        """Places an information request and returns recommendations based on the course and the user
+
+        :param command: The use case request command containing the user email and the course identifier
+        :return: A dictionary with recommendations
+        """
         course_repository = CourseRepository()
         lead_repository = LeadRepository()
 
@@ -91,10 +141,10 @@ class PlaceAnInfoRequest:
         lead = Lead(user_id, course)
 
         success = True
-        recommendations = Recommendations()
+        recommender = Recommender()
         try:
             lead_repository.save(lead)
-            recommendations.make_recommendations_by_course(course.id)
+            recommender.make_recommendations_by_course(course.id)
         except Exception:
             success = False
 
@@ -103,19 +153,32 @@ class PlaceAnInfoRequest:
             'user_id': user_id,
             'course_id': course.id,
             'course_title': course.title,
-            'recommendations': recommendations
+            'recommendations': recommender
         }
 
 
 class RetrieveHomeRecommendationsCommand:
+    """Request command containing the user identifier"""
+
     def __init__(self, user_id: str = None):
+        """Initializes the command
+
+        :param user_id: User identifier
+        """
         self.user_id = user_id
 
 
 class RetrieveHomeRecommendations:
+    """Use case class to make recommendations to a user"""
+
     @staticmethod
     def execute(command: RetrieveHomeRecommendationsCommand) -> Dict:
-        recommendations = Recommendations()
+        """Makes recommendations to a specific user
+
+        :param command: Request command containing the user identifier
+        :return: A dictionary with recommendations to that user
+        """
+        recommendations = Recommender()
         recommendations.make_rank_recommendations().make_recommendations_by_user(command.user_id)
 
         category_repository = CategoryRepository()
@@ -126,8 +189,14 @@ class RetrieveHomeRecommendations:
 
 
 class RetrieveCategories:
+    """Use case class to retrieve a dictionary of popular categories based on the number of leads"""
+
     @staticmethod
     def execute() -> Dict:
+        """Retrieves a list of popular categories
+
+        :return: A dictionary with popular categories
+        """
         category_repository = CategoryRepository()
 
         return {'categories': category_repository.find_popular(min_weighted_rating=0.0)}
