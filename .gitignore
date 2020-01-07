@@ -1,7 +1,0 @@
-data
-.vscode
-.ipynb_checkpoints
-__pycache__
-sql
-out
-web/venv
