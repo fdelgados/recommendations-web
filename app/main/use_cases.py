@@ -1,8 +1,20 @@
 from ..models import CourseRepository, CategoryRepository, Paginator
 from ..models import Lead, LeadRepository
 from ..recommender import Recommender
-from typing import Dict
+from typing import Dict, Optional
 import hashlib
+
+
+def hash_user_email(user_email: str) -> Optional[str]:
+    """Hashes an email
+
+    :param user_email: The user email
+    :return: A user hash
+    """
+    if user_email is None:
+        return None
+
+    return hashlib.md5(user_email.encode()).hexdigest()
 
 
 class RetrieveCourseCatalogCommand:
@@ -137,7 +149,7 @@ class PlaceAnInfoRequest:
 
         course = course_repository.find(command.course_id)
         # Hashing the user email
-        user_id = hashlib.md5(command.email.encode()).hexdigest()
+        user_id = hash_user_email(command.email)
         lead = Lead(user_id, course)
 
         success = True
@@ -158,14 +170,14 @@ class PlaceAnInfoRequest:
 
 
 class RetrieveHomeRecommendationsCommand:
-    """Request command containing the user identifier"""
+    """Request command containing the user email"""
 
-    def __init__(self, user_id: str = None):
+    def __init__(self, user_email: str = None):
         """Initializes the command
 
-        :param user_id: User identifier
+        :param user_email: User email
         """
-        self.user_id = user_id
+        self.user_email = user_email
 
 
 class RetrieveHomeRecommendations:
@@ -179,7 +191,9 @@ class RetrieveHomeRecommendations:
         :return: A dictionary with recommendations to that user
         """
         recommendations = Recommender()
-        recommendations.make_rank_recommendations().make_recommendations_by_user(command.user_id)
+
+        user_id = hash_user_email(command.user_email)
+        recommendations.make_rank_recommendations().make_recommendations_by_user(user_id)
 
         category_repository = CategoryRepository()
 

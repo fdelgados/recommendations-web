@@ -6,12 +6,30 @@ from .use_cases import PlaceAnInfoRequest, PlaceAnInfoRequestCommand
 from .use_cases import RetrieveHomeRecommendations, RetrieveHomeRecommendationsCommand
 from .use_cases import RetrieveCategories
 
-user_id = '001d7fed950bc1f5834b2d4af75b1879'
+user_id = '1460318498c1f53bb880ce2e6d9ef64b' # user@test.com
+
+
+@main.before_request
+def session_management():
+    session.permanent = True
+
+
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['email'] != 'user@test.com' or request.form['password'] != '1234':
+            error = 'Invalid Credentials. Please try again.'
+        else:
+            session['user_email'] = request.form['email']
+            return redirect(url_for('main.home'))
+
+    return render_template('login.html', error=error)
 
 
 @main.route('/', methods=['GET'])
 def home():
-    command = RetrieveHomeRecommendationsCommand(user_id=user_id)
+    command = RetrieveHomeRecommendationsCommand(user_email=session.get('user_email'))
     response = RetrieveHomeRecommendations.execute(command)
 
     return render_template('home.html',

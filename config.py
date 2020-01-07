@@ -7,6 +7,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     DEBUG = False
     TESTING = False
+    SECRET_KEY = 'nqkUR,+j>3#D7n#('
     DB_USER = 'bc0e0e4f733dda'
     DB_PASSWORD = '00f61efe'
     DB_NAME = 'heroku_8149febc614deb5'
