@@ -6,8 +6,8 @@ This is the fifth part of the Udacity Data Science Nanodegree capstone project, 
 ### Home page
 
 Go to [https://courses-recommender.herokuapp.com/](https://courses-recommender.herokuapp.com/) and the home page looks like that:
-![Home page](../img/home_screenshot.png)
-<img src="../img/home_screenshot.png" />
+
+<img alt="Home page" src="https://github.com/fdelgados/recommendations-web/blob/master/img/home_screenshot.png"/>
 
 In the home page we make three types of rank-based recommendations:
     
